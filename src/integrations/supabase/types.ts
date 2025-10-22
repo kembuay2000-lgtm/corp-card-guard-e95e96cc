@@ -14,16 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          alert_date: string
+          alert_type: string
+          amount: number
+          card_holder: string
+          created_at: string
+          description: string
+          id: string
+          location: string | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string
+          status: string
+          title: string
+          transaction_id: string | null
+        }
+        Insert: {
+          alert_date: string
+          alert_type: string
+          amount: number
+          card_holder: string
+          created_at?: string
+          description: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity: string
+          status?: string
+          title: string
+          transaction_id?: string | null
+        }
+        Update: {
+          alert_date?: string
+          alert_type?: string
+          amount?: number
+          card_holder?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          ano_extrato: number
+          categoria: string | null
+          cnpj_cpf_favorecido: string | null
+          cpf_portador: string
+          created_at: string
+          data_transacao: string
+          id: string
+          mes_extrato: number
+          nome_favorecido: string | null
+          nome_portador: string
+          tipo_transacao: string
+          valor_transacao: number
+        }
+        Insert: {
+          ano_extrato: number
+          categoria?: string | null
+          cnpj_cpf_favorecido?: string | null
+          cpf_portador: string
+          created_at?: string
+          data_transacao: string
+          id?: string
+          mes_extrato: number
+          nome_favorecido?: string | null
+          nome_portador: string
+          tipo_transacao: string
+          valor_transacao: number
+        }
+        Update: {
+          ano_extrato?: number
+          categoria?: string | null
+          cnpj_cpf_favorecido?: string | null
+          cpf_portador?: string
+          created_at?: string
+          data_transacao?: string
+          id?: string
+          mes_extrato?: number
+          nome_favorecido?: string | null
+          nome_portador?: string
+          tipo_transacao?: string
+          valor_transacao?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "auditor" | "rh" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +304,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["auditor", "rh", "admin"],
+    },
   },
 } as const
