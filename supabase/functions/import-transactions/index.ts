@@ -15,6 +15,7 @@ interface TransactionRow {
   valor_transacao: number;
   mes_extrato: number;
   ano_extrato: number;
+  categoria: string;
 }
 
 Deno.serve(async (req) => {
@@ -57,32 +58,42 @@ Deno.serve(async (req) => {
     const { csvContent } = await req.json();
     
     if (!csvContent) {
+      console.error('CSV content is missing');
       return new Response(
         JSON.stringify({ error: 'CSV content is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Starting CSV processing...');
+    console.log(`Starting CSV processing... Content length: ${csvContent.length} chars`);
 
-    // Parse CSV
+    // Parse CSV with better error handling
     const lines = csvContent.split('\n').filter((line: string) => line.trim());
+    console.log(`Total lines found: ${lines.length}`);
+    
     const transactions: TransactionRow[] = [];
+    let skipped = 0;
 
     // Skip header (first line)
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
-      // Parse CSV considering semicolon separator and quoted fields
-      const fields = line.split(';').map((field: string) => 
-        field.replace(/^"/, '').replace(/"$/, '').trim()
-      );
+      try {
+        const line = lines[i];
+        // Parse CSV considering semicolon separator and quoted fields
+        const fields = line.split(';').map((field: string) => 
+          field.replace(/^"/, '').replace(/"$/, '').trim()
+        );
 
-      if (fields.length >= 15) {
+        if (fields.length < 15) {
+          skipped++;
+          continue;
+        }
+
         const valorStr = fields[14].replace(',', '.');
         const valor = parseFloat(valorStr);
         
         if (isNaN(valor)) {
-          console.warn(`Skipping line ${i + 1}: Invalid valor_transacao`);
+          console.warn(`Line ${i + 1}: Invalid valor_transacao: ${valorStr}`);
+          skipped++;
           continue;
         }
 
@@ -94,51 +105,93 @@ Deno.serve(async (req) => {
           formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
         }
 
+        const mesExtrato = parseInt(fields[7]);
+        const anoExtrato = parseInt(fields[6]);
+
+        if (isNaN(mesExtrato) || isNaN(anoExtrato)) {
+          console.warn(`Line ${i + 1}: Invalid mes/ano extrato`);
+          skipped++;
+          continue;
+        }
+
+        // Categorize transaction type
+        let categoria = 'Outros';
+        const tipoTransacao = fields[12].toUpperCase();
+        if (tipoTransacao.includes('SAQUE')) categoria = 'Saque';
+        else if (tipoTransacao.includes('COMBUSTIVEL')) categoria = 'Combustível';
+        else if (tipoTransacao.includes('REFEICAO') || tipoTransacao.includes('ALIMENTACAO')) categoria = 'Alimentação';
+        else if (tipoTransacao.includes('MATERIAL')) categoria = 'Material';
+        else if (tipoTransacao.includes('COMPRA')) categoria = 'Compra';
+
         transactions.push({
           cpf_portador: fields[8],
           nome_portador: fields[9],
-          cnpj_cpf_favorecido: fields[10] || null,
-          nome_favorecido: fields[11] || null,
+          cnpj_cpf_favorecido: fields[10] === '-2' ? null : fields[10],
+          nome_favorecido: fields[11] === 'NAO SE APLICA' ? null : fields[11],
           tipo_transacao: fields[12],
           data_transacao: formattedDate,
           valor_transacao: valor,
-          mes_extrato: parseInt(fields[7]),
-          ano_extrato: parseInt(fields[6]),
+          mes_extrato: mesExtrato,
+          ano_extrato: anoExtrato,
+          categoria
         });
+      } catch (error) {
+        console.error(`Error parsing line ${i + 1}:`, error);
+        skipped++;
       }
     }
 
-    console.log(`Parsed ${transactions.length} transactions`);
+    console.log(`Parsed ${transactions.length} transactions, skipped ${skipped} lines`);
 
-    // Insert in batches of 500
-    const batchSize = 500;
+    if (transactions.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'No valid transactions found in CSV',
+          skipped 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Insert in batches of 1000 for better performance
+    const batchSize = 1000;
     let inserted = 0;
     let errors = 0;
+    const errorDetails: string[] = [];
 
     for (let i = 0; i < transactions.length; i += batchSize) {
       const batch = transactions.slice(i, i + batchSize);
       
-      const { error } = await supabase
-        .from('transactions')
-        .insert(batch);
+      try {
+        const { error } = await supabase
+          .from('transactions')
+          .insert(batch);
 
-      if (error) {
-        console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
+        if (error) {
+          console.error(`Error inserting batch ${Math.floor(i / batchSize) + 1}:`, error.message);
+          errorDetails.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
+          errors += batch.length;
+        } else {
+          inserted += batch.length;
+          console.log(`Inserted batch ${Math.floor(i / batchSize) + 1}: ${batch.length} records (${inserted}/${transactions.length})`);
+        }
+      } catch (batchError: any) {
+        console.error(`Exception in batch ${Math.floor(i / batchSize) + 1}:`, batchError);
+        errorDetails.push(`Batch ${Math.floor(i / batchSize) + 1}: ${batchError.message}`);
         errors += batch.length;
-      } else {
-        inserted += batch.length;
-        console.log(`Inserted batch ${i / batchSize + 1}: ${batch.length} records`);
       }
     }
 
-    console.log(`Import completed: ${inserted} inserted, ${errors} errors`);
+    console.log(`Import completed: ${inserted} inserted, ${errors} errors, ${skipped} skipped`);
 
     return new Response(
       JSON.stringify({
         success: true,
         inserted,
         errors,
-        total: transactions.length
+        skipped,
+        total: transactions.length,
+        errorDetails: errorDetails.length > 0 ? errorDetails : undefined
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
