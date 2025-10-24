@@ -1,40 +1,92 @@
+import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle, Clock, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 export function StatsOverview() {
-  const stats = [
+  const [stats, setStats] = useState({
+    totalTransactions: 0,
+    criticalAlerts: 0,
+    compliant: 0,
+    inReview: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Buscar total de transações
+      const { count: totalTransactions } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true });
+
+      // Buscar alertas críticos (pendentes)
+      const { count: criticalAlerts } = await supabase
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .eq('severity', 'high')
+        .eq('status', 'pending');
+
+      // Buscar alertas em análise
+      const { count: inReview } = await supabase
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      // Calcular conformes (transações sem alertas críticos)
+      const compliant = (totalTransactions || 0) - (inReview || 0);
+
+      setStats({
+        totalTransactions: totalTransactions || 0,
+        criticalAlerts: criticalAlerts || 0,
+        compliant: compliant > 0 ? compliant : 0,
+        inReview: inReview || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayStats = [
     {
       title: "Transações Analisadas",
-      value: "12,847",
-      change: "+2,341 este mês",
+      value: loading ? "..." : stats.totalTransactions.toLocaleString('pt-BR'),
+      change: "Total importado",
       icon: DollarSign,
       variant: "default" as const,
     },
     {
       title: "Alertas Críticos",
-      value: "23",
+      value: loading ? "..." : stats.criticalAlerts.toString(),
       change: "Requerem ação",
       icon: AlertTriangle,
       variant: "destructive" as const,
     },
     {
       title: "Conformes",
-      value: "12,689",
-      change: "98.8% conformidade",
+      value: loading ? "..." : stats.compliant.toLocaleString('pt-BR'),
+      change: stats.totalTransactions > 0 
+        ? `${((stats.compliant / stats.totalTransactions) * 100).toFixed(1)}% conformidade`
+        : "0% conformidade",
       icon: CheckCircle,
       variant: "success" as const,
     },
     {
       title: "Em Análise",
-      value: "135",
-      change: "Aguardando RH",
+      value: loading ? "..." : stats.inReview.toString(),
+      change: "Aguardando revisão",
       icon: Clock,
       variant: "warning" as const,
     },
   ];
 
   return (
-    <section className="py-12 bg-background">
+    <section className="py-12 bg-background stats-section">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">Visão Geral da Auditoria</h2>
@@ -44,7 +96,7 @@ export function StatsOverview() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
+          {displayStats.map((stat, index) => {
             const Icon = stat.icon;
             const bgColorClass = 
               stat.variant === "destructive" ? "bg-destructive/10" :

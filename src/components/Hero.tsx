@@ -21,11 +21,30 @@ export function Hero() {
           </p>
           
           <div className="flex flex-wrap gap-4 justify-center mb-12">
-            <Button size="lg" className="gap-2">
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={() => {
+                const alertsSection = document.querySelector('.alerts-section');
+                if (alertsSection) {
+                  alertsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               <FileSearch className="w-5 h-5" />
               Visualizar Alertas
             </Button>
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => {
+                const statsSection = document.querySelector('.stats-section');
+                if (statsSection) {
+                  statsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               <TrendingUp className="w-5 h-5" />
               Dashboard
             </Button>
