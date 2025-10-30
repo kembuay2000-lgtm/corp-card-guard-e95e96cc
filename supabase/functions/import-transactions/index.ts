@@ -88,8 +88,20 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const valorStr = fields[14].replace(',', '.');
-        const valor = parseFloat(valorStr);
+        // Validate required fields
+        const cpfPortador = fields[8]?.trim();
+        const nomePortador = fields[9]?.trim();
+        const tipoTransacao = fields[12]?.trim();
+        const dataTransacao = fields[13]?.trim();
+        const valorStr = fields[14]?.trim();
+
+        if (!cpfPortador || !nomePortador || !tipoTransacao || !dataTransacao || !valorStr) {
+          console.warn(`Line ${i + 1}: Missing required fields`);
+          skipped++;
+          continue;
+        }
+
+        const valor = parseFloat(valorStr.replace(',', '.'));
         
         if (isNaN(valor)) {
           console.warn(`Line ${i + 1}: Invalid valor_transacao: ${valorStr}`);
@@ -98,17 +110,29 @@ Deno.serve(async (req) => {
         }
 
         // Convert date from DD/MM/YYYY to YYYY-MM-DD
-        const dataTransacao = fields[13];
         const dateParts = dataTransacao.split('/');
-        let formattedDate = dataTransacao;
-        if (dateParts.length === 3) {
-          formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        if (dateParts.length !== 3) {
+          console.warn(`Line ${i + 1}: Invalid date format: ${dataTransacao}`);
+          skipped++;
+          continue;
         }
+
+        const day = dateParts[0].padStart(2, '0');
+        const month = dateParts[1].padStart(2, '0');
+        const year = dateParts[2];
+        
+        if (year.length !== 4 || parseInt(month) > 12 || parseInt(day) > 31) {
+          console.warn(`Line ${i + 1}: Invalid date values: ${dataTransacao}`);
+          skipped++;
+          continue;
+        }
+
+        const formattedDate = `${year}-${month}-${day}`;
 
         const mesExtrato = parseInt(fields[7]);
         const anoExtrato = parseInt(fields[6]);
 
-        if (isNaN(mesExtrato) || isNaN(anoExtrato)) {
+        if (isNaN(mesExtrato) || isNaN(anoExtrato) || mesExtrato < 1 || mesExtrato > 12) {
           console.warn(`Line ${i + 1}: Invalid mes/ano extrato`);
           skipped++;
           continue;
@@ -116,19 +140,22 @@ Deno.serve(async (req) => {
 
         // Categorize transaction type
         let categoria = 'Outros';
-        const tipoTransacao = fields[12].toUpperCase();
-        if (tipoTransacao.includes('SAQUE')) categoria = 'Saque';
-        else if (tipoTransacao.includes('COMBUSTIVEL')) categoria = 'Combustível';
-        else if (tipoTransacao.includes('REFEICAO') || tipoTransacao.includes('ALIMENTACAO')) categoria = 'Alimentação';
-        else if (tipoTransacao.includes('MATERIAL')) categoria = 'Material';
-        else if (tipoTransacao.includes('COMPRA')) categoria = 'Compra';
+        const tipoTransacaoUpper = tipoTransacao.toUpperCase();
+        if (tipoTransacaoUpper.includes('SAQUE')) categoria = 'Saque';
+        else if (tipoTransacaoUpper.includes('COMBUSTIVEL')) categoria = 'Combustível';
+        else if (tipoTransacaoUpper.includes('REFEICAO') || tipoTransacaoUpper.includes('ALIMENTACAO')) categoria = 'Alimentação';
+        else if (tipoTransacaoUpper.includes('MATERIAL')) categoria = 'Material';
+        else if (tipoTransacaoUpper.includes('COMPRA')) categoria = 'Compra';
+
+        const cnpjCpfFavorecido = fields[10]?.trim();
+        const nomeFavorecido = fields[11]?.trim();
 
         transactions.push({
-          cpf_portador: fields[8],
-          nome_portador: fields[9],
-          cnpj_cpf_favorecido: fields[10] === '-2' ? null : fields[10],
-          nome_favorecido: fields[11] === 'NAO SE APLICA' ? null : fields[11],
-          tipo_transacao: fields[12],
+          cpf_portador: cpfPortador,
+          nome_portador: nomePortador,
+          cnpj_cpf_favorecido: (!cnpjCpfFavorecido || cnpjCpfFavorecido === '-2') ? null : cnpjCpfFavorecido,
+          nome_favorecido: (!nomeFavorecido || nomeFavorecido === 'NAO SE APLICA') ? null : nomeFavorecido,
+          tipo_transacao: tipoTransacao,
           data_transacao: formattedDate,
           valor_transacao: valor,
           mes_extrato: mesExtrato,
