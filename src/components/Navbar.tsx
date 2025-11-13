@@ -1,10 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Shield, LogOut } from "lucide-react";
+import { Shield, LogOut, Home, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function Navbar() {
   const { user, userRole, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   if (!user) return null;
 
@@ -12,11 +15,34 @@ export function Navbar() {
     <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-primary" />
+              </div>
+              <span className="font-semibold text-lg">Sistema de Auditoria</span>
             </div>
-            <span className="font-semibold text-lg">Sistema de Auditoria</span>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant={location.pathname === "/" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2"
+              >
+                <Home className="w-4 h-4" />
+                Dashboard
+              </Button>
+              <Button
+                variant={location.pathname === "/transactions" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => navigate("/transactions")}
+                className="gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Transações
+              </Button>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
