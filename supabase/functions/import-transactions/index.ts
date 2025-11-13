@@ -138,17 +138,35 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Categorize transaction type
-        let categoria = 'Outros';
-        const tipoTransacaoUpper = tipoTransacao.toUpperCase();
-        if (tipoTransacaoUpper.includes('SAQUE')) categoria = 'Saque';
-        else if (tipoTransacaoUpper.includes('COMBUSTIVEL')) categoria = 'Combustível';
-        else if (tipoTransacaoUpper.includes('REFEICAO') || tipoTransacaoUpper.includes('ALIMENTACAO')) categoria = 'Alimentação';
-        else if (tipoTransacaoUpper.includes('MATERIAL')) categoria = 'Material';
-        else if (tipoTransacaoUpper.includes('COMPRA')) categoria = 'Compra';
-
         const cnpjCpfFavorecido = fields[10]?.trim();
         const nomeFavorecido = fields[11]?.trim();
+
+        // Categorize transaction type with improved logic
+        let categoria = 'Outros';
+        const tipoTransacaoUpper = tipoTransacao.toUpperCase();
+        const nomeFavorecidoUpper = (nomeFavorecido || '').toUpperCase();
+        
+        if (tipoTransacaoUpper.includes('SAQUE')) {
+          categoria = 'Saque';
+        } else if (tipoTransacaoUpper.includes('COMBUSTIVEL') || nomeFavorecidoUpper.includes('POSTO')) {
+          categoria = 'Combustível';
+        } else if (tipoTransacaoUpper.includes('REFEICAO') || tipoTransacaoUpper.includes('ALIMENTACAO') || 
+                   nomeFavorecidoUpper.includes('RESTAURANTE') || nomeFavorecidoUpper.includes('LANCHONETE')) {
+          categoria = 'Alimentação';
+        } else if (tipoTransacaoUpper.includes('HOTEL') || tipoTransacaoUpper.includes('HOSPEDAGEM') ||
+                   nomeFavorecidoUpper.includes('HOTEL')) {
+          categoria = 'Hospedagem';
+        } else if (tipoTransacaoUpper.includes('TRANSPORTE') || tipoTransacaoUpper.includes('TAXI') ||
+                   tipoTransacaoUpper.includes('UBER') || nomeFavorecidoUpper.includes('UBER')) {
+          categoria = 'Transporte';
+        } else if (tipoTransacaoUpper.includes('MATERIAL') || tipoTransacaoUpper.includes('ESCRITORIO') ||
+                   tipoTransacaoUpper.includes('PAPELARIA')) {
+          categoria = 'Material de Escritório';
+        } else if (tipoTransacaoUpper.includes('EQUIPAMENTO') || tipoTransacaoUpper.includes('INFORMATICA')) {
+          categoria = 'Equipamentos';
+        } else if (tipoTransacaoUpper.includes('COMPRA')) {
+          categoria = 'Compra';
+        }
 
         transactions.push({
           cpf_portador: cpfPortador,

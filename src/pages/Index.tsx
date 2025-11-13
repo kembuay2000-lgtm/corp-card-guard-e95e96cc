@@ -4,6 +4,7 @@ import { StatsOverview } from "@/components/StatsOverview";
 import { AlertsSection } from "@/components/AlertsSection";
 import { TestsProgram } from "@/components/TestsProgram";
 import { TransactionImport } from "@/components/TransactionImport";
+import { TransactionsDashboard } from "@/components/TransactionsDashboard";
 
 const Index = () => {
   return (
@@ -14,6 +15,9 @@ const Index = () => {
         <TransactionImport />
       </div>
       <StatsOverview />
+      <div className="container mx-auto px-4">
+        <TransactionsDashboard />
+      </div>
       <AlertsSection />
       <TestsProgram />
     </div>
