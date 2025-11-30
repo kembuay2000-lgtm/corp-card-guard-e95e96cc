@@ -5,53 +5,77 @@ export function TestsProgram() {
   const tests2025 = [
     {
       id: 1,
-      name: "Limite de Valor Diário",
-      description: "Identifica transações acima de R$ 5.000 em um único dia",
+      name: "Saques de Alto Valor",
+      description: "Detecta saques acima de R$ 2.000 que podem indicar uso inadequado",
       status: "active",
     },
     {
       id: 2,
-      name: "Transações Consecutivas",
-      description: "Detecta 3 ou mais transações em dias consecutivos que somem R$ 10.000",
+      name: "Múltiplas Transações Diárias",
+      description: "Identifica mais de 5 transações no mesmo dia pelo mesmo portador",
       status: "active",
     },
     {
       id: 3,
-      name: "Compras em Finais de Semana",
-      description: "Alerta sobre transações realizadas em sábados e domingos",
+      name: "Transações em Finais de Semana",
+      description: "Alerta sobre transações acima de R$ 500 realizadas em sábados e domingos",
       status: "active",
     },
     {
       id: 4,
-      name: "Horário Fora do Expediente",
-      description: "Verifica transações fora do horário comercial (antes das 7h ou após 19h)",
+      name: "Fracionamento Suspeito",
+      description: "Detecta 3 ou mais transações de valores similares no mesmo dia (possível tentativa de evasão de limite)",
       status: "active",
     },
     {
       id: 5,
-      name: "Categorias Atípicas",
-      description: "Identifica compras em categorias incomuns para o perfil do usuário",
+      name: "Concentração de Fornecedor",
+      description: "Identifica quando mais de 70% dos gastos estão concentrados em um único fornecedor (5+ transações)",
       status: "active",
     },
     {
       id: 6,
-      name: "Múltiplas Transações Mesmo Local",
-      description: "Detecta mais de 4 transações no mesmo estabelecimento em 24h",
+      name: "Portadores Inativos",
+      description: "Detecta portadores sem histórico nos últimos 60 dias que realizaram transação recente",
+      status: "active",
+    },
+    {
+      id: 7,
+      name: "Lei de Benford",
+      description: "Analisa distribuição dos primeiros dígitos das transações para detectar possível manipulação de valores",
       status: "active",
     },
   ];
 
   const tests2026 = [
     {
-      id: 7,
-      name: "Análise de Padrões Históricos",
-      description: "Compara gastos mensais com média dos últimos 6 meses",
+      id: 8,
+      name: "Anomalia Geográfica",
+      description: "Detecta transações em localizações inconsistentes com o perfil do portador",
       status: "planned",
     },
     {
-      id: 8,
+      id: 9,
+      name: "Frequência em Estabelecimentos",
+      description: "Identifica padrões anormais de frequência em estabelecimentos específicos",
+      status: "planned",
+    },
+    {
+      id: 10,
+      name: "Auditoria de Acesso aos Dados",
+      description: "Monitora e registra todos os acessos aos dados sensíveis com alertas para acessos atípicos",
+      status: "planned",
+    },
+    {
+      id: 11,
+      name: "Análise de Padrões Históricos",
+      description: "Compara gastos mensais com média dos últimos 6 meses usando ML",
+      status: "planned",
+    },
+    {
+      id: 12,
       name: "Detecção de Anomalias por ML",
-      description: "Utiliza machine learning para identificar padrões anômalos de gasto",
+      description: "Utiliza machine learning para identificar padrões anômalos complexos de gasto",
       status: "planned",
     },
   ];
@@ -123,14 +147,26 @@ export function TestsProgram() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-primary" />
-                Controles de Segurança Implementados
+                Controles de Segurança e Workflow Implementados
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Acesso restrito por autenticação e autorização de usuários</span>
+                  <span>Acesso restrito por autenticação e autorização de usuários com roles (admin, auditor, rh)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Sistema de workflow para justificativas de alertas com aprovação/rejeição</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Portadores podem enviar justificativas com documentação para cada alerta</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Gestores e auditores podem aprovar/rejeitar justificativas com comentários</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
@@ -138,11 +174,11 @@ export function TestsProgram() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Dados pessoais (CPF) mascarados na interface para usuários do RH</span>
+                  <span>Row Level Security (RLS) implementado em todas as tabelas do banco de dados</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Cópia mensal dos arquivos realizada por funcionário autorizado com registro completo</span>
+                  <span>Registro completo de todas as revisões de alertas com timestamp e identificação do revisor</span>
                 </li>
               </ul>
             </CardContent>

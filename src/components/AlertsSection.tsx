@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Calendar, DollarSign, MapPin, User } from "lucide-react";
+import { AlertCircle, Calendar, DollarSign, MapPin, User, FileText, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AlertJustificationDialog } from "./AlertJustificationDialog";
+import { AlertJustificationReview } from "./AlertJustificationReview";
 
 interface Alert {
   id: string;
@@ -24,6 +26,9 @@ export function AlertsSection() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [justificationDialogOpen, setJustificationDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -205,28 +210,73 @@ export function AlertsSection() {
                     <span>{alert.card_holder}</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleInvestigate(alert.id)}
-                  >
-                    Investigar
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => handleMarkAsReviewed(alert.id)}
-                  >
-                    Marcar como Revisado
-                  </Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedAlertId(alert.id);
+                        setJustificationDialogOpen(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Justificar
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedAlertId(alert.id);
+                        setReviewDialogOpen(true);
+                      }}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Revisar
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleInvestigate(alert.id)}
+                    >
+                      Investigar
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleMarkAsReviewed(alert.id)}
+                    >
+                      Marcar como Revisado
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+
+      {selectedAlertId && (
+        <>
+          <AlertJustificationDialog
+            alertId={selectedAlertId}
+            open={justificationDialogOpen}
+            onOpenChange={setJustificationDialogOpen}
+            onSuccess={fetchAlerts}
+          />
+          <AlertJustificationReview
+            alertId={selectedAlertId}
+            open={reviewDialogOpen}
+            onOpenChange={setReviewDialogOpen}
+            onSuccess={fetchAlerts}
+          />
+        </>
+      )}
     </section>
   );
 }
