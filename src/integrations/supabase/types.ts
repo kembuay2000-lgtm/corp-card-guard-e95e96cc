@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_attachments: {
+        Row: {
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          justification_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          justification_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          justification_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_attachments_justification_id_fkey"
+            columns: ["justification_id"]
+            isOneToOne: false
+            referencedRelation: "alert_justifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_justifications: {
+        Row: {
+          alert_id: string
+          approval_status: string | null
+          created_at: string
+          id: string
+          justification_text: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_comments: string | null
+          submitted_at: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          alert_id: string
+          approval_status?: string | null
+          created_at?: string
+          id?: string
+          justification_text: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_comments?: string | null
+          submitted_at?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          alert_id?: string
+          approval_status?: string | null
+          created_at?: string
+          id?: string
+          justification_text?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_comments?: string | null
+          submitted_at?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_justifications_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alerts: {
         Row: {
           alert_date: string
