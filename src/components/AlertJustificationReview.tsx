@@ -13,7 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Download, FileText } from "lucide-react";
+
+interface Attachment {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number | null;
+}
 
 interface Justification {
   id: string;
@@ -22,6 +29,7 @@ interface Justification {
   approval_status: string;
   reviewer_comments: string | null;
   reviewed_at: string | null;
+  attachments?: Attachment[];
 }
 
 interface AlertJustificationReviewProps {
@@ -55,7 +63,10 @@ export const AlertJustificationReview = ({
     try {
       const { data, error } = await supabase
         .from("alert_justifications")
-        .select("*")
+        .select(`
+          *,
+          attachments:alert_attachments(*)
+        `)
         .eq("alert_id", alertId)
         .order("submitted_at", { ascending: false });
 
@@ -182,6 +193,32 @@ export const AlertJustificationReview = ({
                         {justification.justification_text}
                       </p>
                     </div>
+
+                    {justification.attachments && justification.attachments.length > 0 && (
+                      <div>
+                        <Label>Anexos:</Label>
+                        <div className="space-y-2 mt-2">
+                          {justification.attachments.map((attachment) => (
+                            <div key={attachment.id} className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm flex-1 truncate">{attachment.file_name}</span>
+                              {attachment.file_size && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
+                                </Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => window.open(attachment.file_url, '_blank')}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {justification.reviewer_comments && (
                       <div>
