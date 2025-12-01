@@ -51,20 +51,20 @@ export function TestsProgram() {
     {
       id: 8,
       name: "Anomalia Geográfica",
-      description: "Detecta transações em localizações inconsistentes com o perfil do portador",
-      status: "planned",
+      description: "Detecta transações em localizações muito distantes em curto período (< 4 horas entre transações em locais diferentes)",
+      status: "active",
     },
     {
       id: 9,
       name: "Frequência em Estabelecimentos",
-      description: "Identifica padrões anormais de frequência em estabelecimentos específicos",
-      status: "planned",
+      description: "Identifica padrões suspeitos de uso repetido (> 10 transações no mesmo estabelecimento com alta frequência)",
+      status: "active",
     },
     {
       id: 10,
       name: "Auditoria de Acesso aos Dados",
-      description: "Monitora e registra todos os acessos aos dados sensíveis com alertas para acessos atípicos",
-      status: "planned",
+      description: "Registra todos os acessos aos dados sensíveis (SELECT, UPDATE) com IP, user agent e timestamp para trilha de auditoria",
+      status: "active",
     },
     {
       id: 11,
@@ -118,19 +118,23 @@ export function TestsProgram() {
             {/* Tests 2026 */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-accent" />
-                <h3 className="text-2xl font-semibold">Escopo 2026 - Auditoria Contínua</h3>
+                <Calendar className="w-5 h-5 text-success" />
+                <h3 className="text-2xl font-semibold">Escopo 2026 - Auditoria Contínua Implementada</h3>
               </div>
               <p className="text-muted-foreground mb-4">
-                Novos testes baseados nos resultados da análise de 2025, executados mensalmente
+                10 testes implementados e em execução, com 2 testes adicionais planejados
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {tests2026.map((test) => (
-                  <Card key={test.id} className="hover:shadow-md transition-shadow border-accent/30">
+                  <Card key={test.id} className={`hover:shadow-md transition-shadow ${test.status === 'active' ? '' : 'border-accent/30'}`}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-base">{test.name}</CardTitle>
-                        <AlertTriangle className="w-5 h-5 text-accent flex-shrink-0" />
+                        {test.status === 'active' ? (
+                          <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
+                        ) : (
+                          <AlertTriangle className="w-5 h-5 text-accent flex-shrink-0" />
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -162,15 +166,19 @@ export function TestsProgram() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Portadores podem enviar justificativas com documentação para cada alerta</span>
+                  <span>Portadores podem enviar justificativas com documentação anexa (PDF, imagens, Word até 10MB)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Gestores e auditores podem aprovar/rejeitar justificativas com comentários</span>
+                  <span>Storage seguro de anexos com políticas de acesso controlado por RLS</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
-                  <span>Logs de auditoria para todas as consultas aos dados sensíveis</span>
+                  <span>Gestores e auditores podem aprovar/rejeitar justificativas com comentários e visualização de anexos</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Logs de auditoria automáticos registrando ação, usuário, tabela, IP e user agent para todas as consultas</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
@@ -179,6 +187,10 @@ export function TestsProgram() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-0.5">•</span>
                   <span>Registro completo de todas as revisões de alertas com timestamp e identificação do revisor</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">•</span>
+                  <span>Edge Functions para processamento seguro de importação, detecção de anomalias e logs de auditoria</span>
                 </li>
               </ul>
             </CardContent>

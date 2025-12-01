@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Shield, LogOut, Home, FileText } from "lucide-react";
+import { Shield, LogOut, Home, FileText, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -10,6 +10,8 @@ export function Navbar() {
   const location = useLocation();
 
   if (!user) return null;
+
+  const canGoBack = window.history.length > 1;
 
   return (
     <nav className="border-b bg-card">
@@ -24,6 +26,17 @@ export function Navbar() {
             </div>
             
             <div className="flex items-center gap-2">
+              {canGoBack && location.pathname !== "/" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar
+                </Button>
+              )}
               <Button
                 variant={location.pathname === "/" ? "default" : "ghost"}
                 size="sm"
@@ -31,7 +44,7 @@ export function Navbar() {
                 className="gap-2"
               >
                 <Home className="w-4 h-4" />
-                Dashboard
+                Início
               </Button>
               <Button
                 variant={location.pathname === "/transactions" ? "default" : "ghost"}

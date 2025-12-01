@@ -275,6 +275,143 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 8. Anomalia geográfica (transações em localizações distantes em curto período)
+    const { data: locationData } = await supabase
+      .from('transactions')
+      .select('cpf_portador, nome_portador, data_transacao, location, valor_transacao')
+      .not('location', 'is', null)
+      .order('cpf_portador')
+      .order('data_transacao');
+
+    if (locationData && locationData.length > 0) {
+      const holderLocations = new Map<string, Array<{ date: string; location: string; amount: number; name: string }>>();
+      
+      locationData.forEach(t => {
+        if (!holderLocations.has(t.cpf_portador)) {
+          holderLocations.set(t.cpf_portador, []);
+        }
+        holderLocations.get(t.cpf_portador)!.push({
+          date: t.data_transacao,
+          location: t.location,
+          amount: t.valor_transacao,
+          name: t.nome_portador
+        });
+      });
+
+      for (const [cpf, locations] of holderLocations.entries()) {
+        for (let i = 1; i < locations.length; i++) {
+          const prev = locations[i - 1];
+          const curr = locations[i];
+          
+          const prevDate = new Date(prev.date);
+          const currDate = new Date(curr.date);
+          const hoursDiff = (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60);
+          
+          // Se as localizações são diferentes e o intervalo é menor que 4 horas
+          if (prev.location !== curr.location && hoursDiff < 4 && hoursDiff > 0) {
+            const { data: existingAlert } = await supabase
+              .from('alerts')
+              .select('id')
+              .eq('card_holder', curr.name)
+              .eq('alert_date', curr.date)
+              .eq('alert_type', 'geographic_anomaly')
+              .single();
+
+            if (!existingAlert) {
+              const { error: insertError } = await supabase
+                .from('alerts')
+                .insert({
+                  severity: 'high',
+                  alert_type: 'geographic_anomaly',
+                  title: 'Anomalia Geográfica Detectada',
+                  description: `Transações em localizações diferentes (${prev.location} → ${curr.location}) com intervalo de ${hoursDiff.toFixed(1)} horas. Valores: ${prev.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} e ${curr.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+                  amount: curr.amount,
+                  alert_date: curr.date,
+                  card_holder: curr.name,
+                  location: `${prev.location} → ${curr.location}`,
+                  status: 'pending'
+                });
+              
+              if (!insertError) alertsCreated++;
+            }
+          }
+        }
+      }
+    }
+
+    // 9. Frequência em estabelecimentos (padrão suspeito de uso repetido)
+    const { data: establishmentData } = await supabase
+      .from('transactions')
+      .select('cpf_portador, nome_portador, nome_favorecido, cnpj_cpf_favorecido, valor_transacao, data_transacao')
+      .not('nome_favorecido', 'is', null);
+
+    if (establishmentData) {
+      const holderEstablishments = new Map<string, Map<string, Array<{ date: string; amount: number; name: string }>>>();
+      
+      establishmentData.forEach(t => {
+        if (!holderEstablishments.has(t.cpf_portador)) {
+          holderEstablishments.set(t.cpf_portador, new Map());
+        }
+        const establishments = holderEstablishments.get(t.cpf_portador)!;
+        const key = t.cnpj_cpf_favorecido || t.nome_favorecido;
+        
+        if (!establishments.has(key)) {
+          establishments.set(key, []);
+        }
+        establishments.get(key)!.push({
+          date: t.data_transacao,
+          amount: t.valor_transacao,
+          name: t.nome_portador
+        });
+      });
+
+      for (const [cpf, establishments] of holderEstablishments.entries()) {
+        for (const [establishment, transactions] of establishments.entries()) {
+          // Detectar uso muito frequente (>10 vezes no mesmo estabelecimento)
+          if (transactions.length > 10) {
+            const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
+            const avgAmount = totalAmount / transactions.length;
+            const holderName = transactions[0].name;
+            
+            // Calcular frequência (transações por dia)
+            const dates = transactions.map(t => new Date(t.date).getTime());
+            const minDate = Math.min(...dates);
+            const maxDate = Math.max(...dates);
+            const daysDiff = (maxDate - minDate) / (1000 * 60 * 60 * 24) + 1;
+            const frequency = transactions.length / daysDiff;
+            
+            // Se a frequência for maior que 0.5 transações por dia (3.5 por semana)
+            if (frequency > 0.5) {
+              const { data: existingAlert } = await supabase
+                .from('alerts')
+                .select('id')
+                .eq('card_holder', holderName)
+                .eq('alert_type', 'establishment_frequency')
+                .ilike('description', `%${establishment}%`)
+                .single();
+
+              if (!existingAlert) {
+                const { error: insertError } = await supabase
+                  .from('alerts')
+                  .insert({
+                    severity: 'medium',
+                    alert_type: 'establishment_frequency',
+                    title: 'Frequência Suspeita em Estabelecimento',
+                    description: `${transactions.length} transações no estabelecimento "${establishment}" em ${daysDiff.toFixed(0)} dias (frequência: ${frequency.toFixed(2)} txn/dia). Total gasto: ${totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+                    amount: totalAmount,
+                    alert_date: new Date().toISOString().split('T')[0],
+                    card_holder: holderName,
+                    status: 'pending'
+                  });
+                
+                if (!insertError) alertsCreated++;
+              }
+            }
+          }
+        }
+      }
+    }
+
     if (highWithdrawals && highWithdrawals.length > 0) {
       console.log(`Found ${highWithdrawals.length} high value withdrawals`);
       

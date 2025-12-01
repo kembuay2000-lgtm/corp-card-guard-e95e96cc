@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AlertJustificationDialog } from "./AlertJustificationDialog";
@@ -30,6 +31,7 @@ export function AlertsSection() {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { logAction } = useAuditLog();
 
   useEffect(() => {
     fetchAlerts();
@@ -37,6 +39,9 @@ export function AlertsSection() {
 
   const fetchAlerts = async () => {
     try {
+      // Log audit action
+      await logAction('SELECT', 'alerts');
+
       const { data, error } = await supabase
         .from('alerts')
         .select('*')
@@ -70,6 +75,9 @@ export function AlertsSection() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Log audit action
+      await logAction('UPDATE', 'alerts', alertId);
+
       const { error } = await supabase
         .from('alerts')
         .update({ 
