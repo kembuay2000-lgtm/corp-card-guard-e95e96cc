@@ -161,6 +161,39 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -191,6 +224,7 @@ export type Database = {
           created_at: string
           data_transacao: string
           id: string
+          location: string | null
           mes_extrato: number
           nome_favorecido: string | null
           nome_portador: string
@@ -205,6 +239,7 @@ export type Database = {
           created_at?: string
           data_transacao: string
           id?: string
+          location?: string | null
           mes_extrato: number
           nome_favorecido?: string | null
           nome_portador: string
@@ -219,6 +254,7 @@ export type Database = {
           created_at?: string
           data_transacao?: string
           id?: string
+          location?: string | null
           mes_extrato?: number
           nome_favorecido?: string | null
           nome_portador?: string

@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.detect-anomalies]
 verify_jwt = true
+
+[functions.log-audit]
+verify_jwt = true
