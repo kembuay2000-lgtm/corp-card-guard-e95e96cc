@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Transactions from "./pages/Transactions";
+import AuditDashboard from "./pages/AuditDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Transactions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audit-dashboard"
+              element={
+                <ProtectedRoute>
+                  <AuditDashboard />
                 </ProtectedRoute>
               }
             />

@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Shield, LogOut, Home, FileText, ArrowLeft } from "lucide-react";
+import { Shield, LogOut, Home, FileText, ArrowLeft, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -54,6 +54,15 @@ export function Navbar() {
               >
                 <FileText className="w-4 h-4" />
                 Transações
+              </Button>
+              <Button
+                variant={location.pathname === "/audit-dashboard" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => navigate("/audit-dashboard")}
+                className="gap-2"
+              >
+                <ClipboardList className="w-4 h-4" />
+                Auditoria
               </Button>
             </div>
           </div>
