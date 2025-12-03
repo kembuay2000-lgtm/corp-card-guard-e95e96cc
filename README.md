@@ -1,73 +1,181 @@
-# Welcome to your Lovable project
+# Sistema de Auditoria Contínua para Cartão Corporativo
 
-## Project info
+Sistema desenvolvido para auditoria contínua de transações de cartão corporativo, utilizando dados do CPGF (Cartão de Pagamento do Governo Federal) como base simulada.
 
-**URL**: https://lovable.dev/projects/e15c487b-d666-446e-a9da-23f6df8a0436
+## 📋 Sobre o Projeto
 
-## How can I edit this code?
+Este projeto foi desenvolvido como trabalho acadêmico para a disciplina de **Auditoria de Sistemas** do curso de **Sistemas de Informação**. O sistema implementa um conjunto completo de ferramentas para monitoramento, análise e auditoria de transações financeiras corporativas.
 
-There are several ways of editing your application.
+### Objetivos
 
-**Use Lovable**
+- Implementar programa de testes automatizados para detecção de anomalias
+- Criar interface para gestão de alertas pela equipe de RH e Auditoria Interna
+- Garantir rastreabilidade completa de acessos aos dados sensíveis
+- Gerar relatórios de compliance para documentação oficial
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e15c487b-d666-446e-a9da-23f6df8a0436) and start prompting.
+## 🚀 Funcionalidades
 
-Changes made via Lovable will be committed automatically to this repo.
+### Importação de Dados
+- Upload de arquivos CSV com transações do CPGF
+- Processamento em lotes de 1.000 registros
+- Validação rigorosa de campos obrigatórios
+- Categorização automática de transações
 
-**Use your preferred IDE**
+### Programa de Testes de Auditoria (10 testes automáticos)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+| # | Teste | Descrição | Severidade |
+|---|-------|-----------|------------|
+| 1 | Saques de Alto Valor | Transações acima de R$ 2.000 | Crítico |
+| 2 | Múltiplas Transações Diárias | Mais de 5 transações no mesmo dia | Médio |
+| 3 | Transações em Finais de Semana | Valores acima de R$ 500 em sábados/domingos | Médio |
+| 4 | Fracionamento Suspeito | Múltiplas transações pequenas sequenciais | Crítico |
+| 5 | Concentração de Fornecedor | Alto volume em único fornecedor | Médio |
+| 6 | Portadores Inativos | Transações de portadores sem atividade recente | Médio |
+| 7 | Anomalia Lei de Benford | Distribuição atípica de dígitos iniciais | Médio |
+| 8 | Anomalia Geográfica | Transações em locais distantes em curto período | Crítico |
+| 9 | Frequência em Estabelecimentos | Padrões de uso repetido suspeito | Médio |
+| 10 | Auditoria de Acesso | Registro de todos os acessos a dados sensíveis | Info |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Gestão de Alertas
+- Visualização em tempo real de alertas gerados
+- Workflow de justificativas com upload de documentos
+- Aprovação/rejeição por gestores autorizados
+- Histórico completo de cada alerta
 
-Follow these steps:
+### Dashboard de Auditoria
+- Estatísticas de acesso ao sistema
+- Detecção de acessos suspeitos (horários incomuns, múltiplos IPs)
+- Gráficos de atividade por hora e tabela
+- Identificação de usuários mais ativos
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Relatórios e Exportação
+- Exportação de transações para PDF e Excel
+- Relatório completo de auditoria em PDF
+- Timeline de alertas para compliance
+- Documentação de justificativas aprovadas/rejeitadas
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Controle de Acesso
+- Autenticação via Supabase Auth
+- Três perfis de usuário: Admin, Auditor, RH
+- Row Level Security (RLS) em todas as tabelas
+- Registro de auditoria de todos os acessos
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🛠️ Tecnologias Utilizadas
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+- **Frontend**: React 18, TypeScript, Vite
+- **Estilização**: Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Edge Functions, Auth)
+- **Gráficos**: Recharts
+- **Exportação**: jsPDF, jspdf-autotable, xlsx
+- **Gerenciamento de Estado**: TanStack Query
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── components/
+│   ├── audit/              # Componentes do dashboard de auditoria
+│   │   ├── AuditActivityChart.tsx
+│   │   ├── AuditReportExport.tsx
+│   │   ├── AuditStats.tsx
+│   │   └── AuditSuspiciousAlerts.tsx
+│   ├── ui/                 # Componentes base (shadcn/ui)
+│   ├── AlertJustificationDialog.tsx
+│   ├── AlertJustificationReview.tsx
+│   ├── AlertsSection.tsx
+│   ├── Hero.tsx
+│   ├── Navbar.tsx
+│   ├── StatsOverview.tsx
+│   ├── TestsProgram.tsx
+│   ├── TransactionImport.tsx
+│   └── TransactionsDashboard.tsx
+├── contexts/
+│   └── AuthContext.tsx     # Contexto de autenticação
+├── hooks/
+│   ├── useAuditLog.ts      # Hook para logging de auditoria
+│   └── use-toast.ts
+├── integrations/
+│   └── supabase/           # Configuração do Supabase
+├── pages/
+│   ├── AuditDashboard.tsx  # Dashboard de auditoria
+│   ├── Auth.tsx            # Página de login
+│   ├── Index.tsx           # Página principal
+│   ├── NotFound.tsx
+│   └── Transactions.tsx    # Listagem de transações
+└── App.tsx                 # Roteamento principal
+
+supabase/
+├── functions/
+│   ├── detect-anomalies/   # Detecção de anomalias
+│   ├── import-transactions/ # Importação de CSV
+│   └── log-audit/          # Registro de auditoria
+└── config.toml             # Configuração do Supabase
 ```
 
-**Edit a file directly in GitHub**
+## 🗄️ Modelo de Dados
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Tabelas Principais
 
-**Use GitHub Codespaces**
+- **transactions**: Armazena todas as transações importadas
+- **alerts**: Alertas gerados pelos testes de auditoria
+- **alert_justifications**: Justificativas enviadas pelos portadores
+- **alert_attachments**: Documentos anexados às justificativas
+- **audit_logs**: Logs de acesso ao sistema
+- **profiles**: Informações dos usuários
+- **user_roles**: Papéis de acesso dos usuários
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔒 Segurança
 
-## What technologies are used for this project?
+- **Row Level Security (RLS)**: Todas as tabelas possuem políticas de segurança
+- **Autenticação**: Gerenciada pelo Supabase Auth
+- **Auditoria de Acesso**: Todos os acessos são registrados com IP, user agent e timestamp
+- **Proteção de Dados**: Dados sensíveis protegidos por controle de acesso baseado em papéis
 
-This project is built with:
+## 📊 Como Usar
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 1. Acessar o Sistema
+- Faça login com suas credenciais
+- O sistema verificará automaticamente seu perfil de acesso
 
-## How can I deploy this project?
+### 2. Importar Transações
+- Acesse a página principal
+- Clique em "Importar CSV"
+- Selecione o arquivo de transações do CPGF
+- Aguarde o processamento
 
-Simply open [Lovable](https://lovable.dev/projects/e15c487b-d666-446e-a9da-23f6df8a0436) and click on Share -> Publish.
+### 3. Detectar Anomalias
+- Após a importação, clique em "Detectar Anomalias"
+- O sistema executará os 10 testes automaticamente
+- Os alertas serão exibidos na seção de alertas
 
-## Can I connect a custom domain to my Lovable project?
+### 4. Gerenciar Alertas
+- Visualize os alertas gerados
+- Envie justificativas quando necessário
+- Gestores podem aprovar ou rejeitar justificativas
 
-Yes, you can!
+### 5. Gerar Relatórios
+- Acesse o Dashboard de Auditoria
+- Visualize estatísticas de acesso
+- Exporte relatórios em PDF para compliance
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 👥 Perfis de Acesso
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+| Perfil | Permissões |
+|--------|------------|
+| Admin | Acesso total ao sistema |
+| Auditor | Importar transações, detectar anomalias, gerenciar alertas, gerar relatórios |
+| RH | Visualizar alertas, aprovar/rejeitar justificativas |
+
+## 📝 Licença
+
+Este projeto foi desenvolvido para fins acadêmicos.
+
+## 👨‍💻 Desenvolvimento
+
+Desenvolvido utilizando [Lovable](https://lovable.dev) - Plataforma de desenvolvimento com IA.
+
+---
+
+**Disciplina**: Auditoria de Sistemas  
+**Curso**: Sistemas de Informação  
+**Data**: 2025
